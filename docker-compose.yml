@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  app:
+    depends_on:
+      - redis
+    build:
+      context: '.'
+    ports:
+      - '3000:3000'
+    volumes:
+      - ".:/app"
+    env_file:
+     - .env
+  redis:
+    image: 'redis:3.2-alpine'
+    command: redis-server --appendonly yes
+    volumes:
+      - 'redis:/data'
+
+volumes:
+  redis:

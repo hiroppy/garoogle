@@ -1,0 +1,24 @@
+{
+  "name": "garoogle",
+  "version": "1.0.0",
+  "description": "GaroonからGoogle Calendarへ予定を更新します",
+  "scripts": {
+    "start": "node src/index.js",
+    "fmt": "prettier --write **/*.{js,json,md}",
+    "precommit": "pretty-quick --staged"
+  },
+  "author": "hiroppy <git@hiroppy.me> (https://hiroppy.me)",
+  "license": "MIT",
+  "dependencies": {
+    "garoon-soap": "^0.1.8",
+    "lodash.xor": "^4.5.0",
+    "node-cron": "^1.2.1",
+    "node-google-calendar": "^1.1.1",
+    "redis": "^2.8.0"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "prettier": "^1.12.1",
+    "pretty-quick": "^1.6.0"
+  }
+}
