@@ -29,6 +29,8 @@ const getAsync = promisify(client.get).bind(client);
 const setAsync = promisify(client.set).bind(client);
 const delAsync = promisify(client.del).bind(client);
 
+// client.flushdb();
+
 init();
 
 cron.schedule(process.env.CRON, async () => {
@@ -45,6 +47,8 @@ async function startTasks() {
 
   for (let i = 0; i < res.length; i++) {
     const event = res[i];
+
+    // console.log(event);
     const schema = formatSchema(event);
 
     if (schema === null) continue;

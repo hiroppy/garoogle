@@ -17,9 +17,13 @@ async function getEvents() {
 }
 
 function formatSchema(event) {
-  const { when, plan } = event;
+  const { when, plan, publicType } = event;
 
   let startTime, endTime;
+
+  // TODO: wip
+  if (event.eventType === 'repeat') {
+  }
 
   if (when === undefined) return null;
 
@@ -34,10 +38,14 @@ function formatSchema(event) {
     endTime = when.datetimes[0].end;
   }
 
+  const summary = `${publicType === 'private' ? '🔑' : ''} ${
+    event.plan ? `${event.plan}: ${event.detail}` : event.detail
+  }`.trim();
+
   return {
     startTime,
     endTime,
-    summary: event.plan ? `${event.plan}: ${event.detail}` : event.detail,
+    summary,
     description: event.description
   };
 }
