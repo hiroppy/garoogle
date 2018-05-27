@@ -5,8 +5,6 @@ COPY . .
 
 RUN npx npm install
 
-# EXPOSE 5000
-
 ENV HOST=0.0.0.0
 
 COPY . /app
