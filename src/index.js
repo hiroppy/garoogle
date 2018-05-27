@@ -21,14 +21,15 @@ const redis = require('redis');
 const cron = require('node-cron');
 const xor = require('lodash.xor');
 const { getEvents, formatSchema } = require('./garoon');
+const { init, updateLastUpdated } = require('./server');
 const { postEvent, updateEvent, deleteEvent } = require('./google-calendar');
-
-require('./server');
 
 const client = redis.createClient('6379', 'redis');
 const getAsync = promisify(client.get).bind(client);
 const setAsync = promisify(client.set).bind(client);
 const delAsync = promisify(client.del).bind(client);
+
+init();
 
 cron.schedule(process.env.CRON, async () => {
   await startTasks();
@@ -94,17 +95,28 @@ async function startTasks() {
     for (let i = 0; i < orphans.length; i++) {
       const id = orphans[i];
 
-      // 2
-      if (!idList.includes(id)) {
-        const { calendarID } = JSON.parse(await getAsync(id));
+      if (idList.includes(id)) continue;
 
+      // 2
+      const item = await getAsync(id);
+
+      if (!item) continue;
+
+      const { calendarID } = JSON.parse(item);
+
+      try {
         await deleteEvent(calendarID);
+      } catch (e) {
+        if (JSON.parse(e.message).error.statusCode !== '410(Gone)') throw e;
+      } finally {
         await delAsync(id);
       }
     }
   }
 
   await setAsync('latestList', JSON.stringify(idList));
+
+  updateLastUpdated(new Date().toLocaleString('ja', { timeZone: 'Asia/Tokyo' }));
 }
 
 async function setItemToRedis(key, value) {

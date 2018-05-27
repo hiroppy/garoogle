@@ -2,17 +2,34 @@
 
 const { createServer } = require('http');
 
-const server = createServer();
+let lastUpdated;
 
-server.on('request', (req, res) => {
-  if (req.url === '/api/health') {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.write(':)');
-  } else {
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-  }
+function init() {
+  const server = createServer();
 
-  res.end();
-});
+  server.on('request', (req, res) => {
+    if (req.url === '/api/health') {
+      res.writeHead(200, { 'Content-Type': 'text/json' });
+      res.write(
+        JSON.stringify({
+          lastUpdated
+        })
+      );
+    } else {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+    }
 
-server.listen(3000);
+    res.end();
+  });
+
+  server.listen(3000);
+}
+
+function updateLastUpdated(d) {
+  lastUpdated = d;
+}
+
+module.exports = {
+  init,
+  updateLastUpdated
+};

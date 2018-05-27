@@ -9,7 +9,7 @@ async function getEvents() {
   const start = new Date();
   const end = new Date();
 
-  end.setDate(start.getDate() + process.env.TERM || 30);
+  end.setDate(start.getDate() + (Number(process.env.TERM) || 30));
 
   const res = await garoon.schedule.getEvents(start, end);
 
@@ -21,7 +21,7 @@ function formatSchema(event) {
 
   let startTime, endTime;
 
-  if (plan === '休み' || when === undefined) return null;
+  if (when === undefined) return null;
 
   // TODO: なんで配列なのか調べてないので、とりあえず0番目だけ
   if (when.dates.length !== 0) {
