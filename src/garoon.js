@@ -2,7 +2,11 @@
 
 const GaroonSoap = require('garoon-soap');
 
-const garoon = new GaroonSoap(process.env.URL, process.env.USERNAME, process.env.PASSWORD);
+const garoon = new GaroonSoap(
+  process.env.GAROON_URL,
+  process.env.GAROON_MY_NAME,
+  process.env.GAROON_MY_PASSWORD
+);
 const ignoredPlans = process.env.PLAN_FILTER.split(',').map((s) => s.trim());
 
 async function getEvents() {
@@ -14,6 +18,37 @@ async function getEvents() {
   const res = await garoon.schedule.getEvents(start, end);
 
   return res.filter((e) => !ignoredPlans.includes(e.plan));
+}
+
+async function addEvents(arr) {
+  return await garoon.schedule.addEvents(arr);
+}
+
+/*
+{ id: '4226798',
+  eventType: 'normal',
+  version: '1527403075',
+  publicType: 'private',
+  plan: '外出',
+  detail: 'Title',
+  description: undefined,
+  timezone: 'Asia/Tokyo',
+  endTimezone: 'Asia/Tokyo',
+  allday: false,
+  startOnly: false,
+  members: { users: [Array], organizations: [], facilities: [] },
+  observers: { users: [], organizations: [], roles: [] },
+  when: { datetimes: [Array], dates: [] },
+  follows: [],
+  files: [],
+  removeFileIds: [] },
+*/
+async function modifyEvents(arr) {
+  return await garoon.schedule.modifyEvents(arr);
+}
+
+async function deleteEvents(arr) {
+  return await garoon.schedule.removeEvents(arr);
 }
 
 function formatSchema(event) {
@@ -38,19 +73,22 @@ function formatSchema(event) {
     endTime = when.datetimes[0].end;
   }
 
-  const summary = `${publicType === 'private' ? '🔑' : ''} ${
-    event.plan ? `${event.plan}: ${event.detail}` : event.detail
-  }`.trim();
+  const summary = `${event.plan ? `${event.plan}: ${event.detail}` : event.detail}`.trim();
 
   return {
     startTime,
     endTime,
     summary,
+    members: JSON.stringify(event.members),
+    private: publicType === 'private',
     description: event.description
   };
 }
 
 module.exports = {
   getEvents,
+  addEvents,
+  modifyEvents,
+  deleteEvents,
   formatSchema
 };

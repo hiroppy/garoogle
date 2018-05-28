@@ -1,28 +1,28 @@
 'use strict';
 
-const { createServer } = require('http');
+const express = require('express');
+const bodyParser = require('body-parser');
 
 let lastUpdated;
 
-function init() {
-  const server = createServer();
+function init(ee) {
+  const app = express();
 
-  server.on('request', (req, res) => {
-    if (req.url === '/api/health') {
-      res.writeHead(200, { 'Content-Type': 'text/json' });
-      res.write(
-        JSON.stringify({
-          lastUpdated
-        })
-      );
-    } else {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-    }
+  app.use(bodyParser());
 
-    res.end();
+  app.get('/api/health', (req, res) => res.status(200).json({ lastUpdated }));
+  app.post('/api/google/event', (req, res) => {
+    const state = req.headers['x-goog-resource-state'];
+    // console.log(req.headers['x-goog-expiration']);
+    // console.log(req.headers['x-goog-resource-id']);
+
+    if (state === 'sync') ee.emit('sync');
+    return res.status(200).send(':)');
   });
 
-  server.listen(3000);
+  app.listen(3000, () => {
+    console.log('Started on PORT 3000');
+  });
 }
 
 function updateLastUpdated(d) {

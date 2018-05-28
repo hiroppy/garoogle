@@ -3,7 +3,7 @@ version: '3'
 services:
   app:
     depends_on:
-      - redis
+      - mysql
     build:
       context: '.'
     ports:
@@ -11,12 +11,24 @@ services:
     volumes:
       - ".:/app"
     env_file:
-     - .env
-  redis:
-    image: 'redis:3.2-alpine'
-    command: redis-server --appendonly yes
+      - .env
+  # batch:
+  #   image: node:10.2.1
+  #   command: npm run start:batch
+  #   build:
+  #     context: '.'
+  #   volumes:
+  #     - ".:/app"
+  #   env_file:
+  #     - .env
+  mysql:
+    image: mysql:5.7 # wait for https://github.com/mysqljs/mysql/pull/1962
     volumes:
-      - 'redis:/data'
-
-volumes:
-  redis:
+     - ./data/db:/var/lib/mysql
+    env_file:
+      - .env
+    # redis:
+  #   image: 'redis:3.2-alpine'
+  #   command: redis-server --appendonly yes
+  #   volumes:
+  #     - 'redis:/data'

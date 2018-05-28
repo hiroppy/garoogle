@@ -11,7 +11,7 @@ Garoon から Google Calendar へ定期的に予定を更新するアプリケ�
 ```sh
 $ git clone git@github.com:hiroppy/garoogle.git
 $ cd garoogle
-$ cp .env.sample .env # end edit
+$ cp .env.sample .env # and edit
 $ docker-compose up -d
 ```
 
