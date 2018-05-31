@@ -1,10 +1,6 @@
 # garoogle
 
-Garoon から Google Calendar へ定期的に予定を更新するアプリケーションです。
-
-## Feature
-
-* 予定の追加・削除・変更 に対応
+Garoon と Google Calendar を双方向に同期します。
 
 ## Setup
 
