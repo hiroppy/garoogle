@@ -21,7 +21,7 @@ async function getEvents() {
 }
 
 async function addEvents(arr) {
-  return await garoon.schedule.addEvents(arr);
+  return garoon.schedule.addEvents(arr);
 }
 
 /*
@@ -44,11 +44,11 @@ async function addEvents(arr) {
   removeFileIds: [] },
 */
 async function modifyEvents(arr) {
-  return await garoon.schedule.modifyEvents(arr);
+  return garoon.schedule.modifyEvents(arr);
 }
 
 async function deleteEvents(arr) {
-  return await garoon.schedule.removeEvents(arr);
+  return garoon.schedule.removeEvents(arr);
 }
 
 function formatSchema(event) {

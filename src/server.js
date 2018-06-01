@@ -13,10 +13,12 @@ function init(ee) {
   app.get('/api/health', (req, res) => res.status(200).json({ lastUpdated }));
   app.post('/api/google/event', (req, res) => {
     const state = req.headers['x-goog-resource-state'];
-    // console.log(req.headers['x-goog-expiration']);
-    // console.log(req.headers['x-goog-resource-id']);
 
-    if (state === 'sync') ee.emit('sync');
+    ee.emit('onFetchList', {
+      channelId: req.headers['x-goog-channel-id'],
+      resourceId: req.headers['x-goog-resource-id']
+    });
+
     return res.status(200).send(':)');
   });
 

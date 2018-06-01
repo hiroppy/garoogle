@@ -9,18 +9,17 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - ".:/app"
+      - '.:/app'
     env_file:
       - .env
-  # batch:
-  #   image: node:10.2.1
-  #   command: npm run start:batch
-  #   build:
-  #     context: '.'
-  #   volumes:
-  #     - ".:/app"
-  #   env_file:
-  #     - .env
+  batch:
+    build:
+      context: '.'
+    volumes:
+      - '.:/app'
+    env_file:
+      - .env
+    command: start:batch
   mysql:
     image: mysql:5.7 # wait for https://github.com/mysqljs/mysql/pull/1962
     volumes:

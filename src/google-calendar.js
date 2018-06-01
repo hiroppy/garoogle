@@ -3,7 +3,14 @@
 const { resolve } = require('path');
 const { addEvents, modifyEvents, deleteEvents } = require('./garoon');
 const CalendarAPI = require('@about_hiroppy/node-google-calendar');
-const { setEvent, getEvent, updateEvent: updateDBEvent, getMeta, setMeta } = require('./store');
+const {
+  setEvent,
+  getEvent,
+  updateEvent: updateDBEvent,
+  deleteEvent: deleteDBEvent,
+  getMeta,
+  setMeta
+} = require('./store');
 const { private_key: key } = require(resolve(process.env.GOOGLE_API_KEY_FILE));
 
 if (!key) {
@@ -30,19 +37,29 @@ function createParams({ startTime, endTime, summary, description }) {
   };
 }
 
+function isAllow(data) {
+  if (!Reflect.has(data, 'members')) return false;
+  if (!process.env.SAFETY) return true;
+
+  const { users } = JSON.parse(data.members);
+
+  return users && users.length === 1 && users[0].id === process.env.GAROON_MY_ID;
+}
+
 // catch as a webhook from server.js
 async function refreshList(ee) {
-  ee.on('sync', async () => {
+  ee.on('onFetchList', async (headers) => {
     const meta = await getMeta();
 
     if (meta === null) return;
 
-    const { nextSyncToken: syncToken } = meta;
+    const { nextSyncToken: syncToken, currentChannelId } = meta;
+
+    if (headers.channelId !== currentChannelId) return;
 
     // fetch with syncToken
-    const { items, nextSyncToken } = await require('./google-calendar').getList({ syncToken });
+    const { items, nextSyncToken } = await getList({ syncToken });
 
-    // nullのときは処理をしない
     if (syncToken !== null) {
       for (let i = 0; i < items.length; i++) {
         const { id: googleId, status, start, end, summary, description, visibility } = items[i];
@@ -51,21 +68,24 @@ async function refreshList(ee) {
 
         // 削除
         if (status === 'cancelled') {
-          try {
-            if (process.env.IS_DELETED_EVENT_FROM_GOOGLE) await deleteEvents([data.garoonId]);
-          } catch (e) {
-            console.error(e);
-          } finally {
-            continue;
+          if (data && isAllow(data)) {
+            try {
+              await deleteEvents([data.garoonId]);
+              await deleteDBEvent(data.id);
+            } catch (e) {
+              console.error(e);
+            }
           }
+
+          continue;
         }
 
         const schema = {
           summary,
           description,
           private: visibility === 'private',
-          startTime: new Date(start.dateTime).getTime(),
-          endTime: new Date(end.dateTime).getTime()
+          startTime: new Date(start.dateTime).getTime().toString(),
+          endTime: new Date(end.dateTime).getTime().toString()
         };
 
         // for garoon
@@ -109,16 +129,20 @@ async function refreshList(ee) {
           });
         }
 
-        // 更新があるか確認する
-        if (data && isUpdatedEvent(schema, data)) {
-          await modifyEvents([
-            {
-              ...postedSchema,
-              id: data.garoonId,
-              members: JSON.parse(data.members)
-            }
-          ]);
-          await updateDBEvent(schema, googleId);
+        // 存在すれば、以前から更新があるかの確認をし、上書きする
+        if (data && isAllow(data) && isUpdatedEvent(schema, data)) {
+          try {
+            await modifyEvents([
+              {
+                ...postedSchema,
+                id: data.garoonId,
+                members: JSON.parse(data.members)
+              }
+            ]);
+            await updateDBEvent(schema, data.id);
+          } catch (e) {
+            console.error(e);
+          }
         }
       }
     }
@@ -147,6 +171,26 @@ async function deleteEvent(eventID) {
   return cal.Events.delete(calendarID, eventID, {});
 }
 
+async function watch(id) {
+  return cal.Events.watch(
+    calendarID,
+    {
+      id,
+      type: 'web_hook',
+      address: process.env.CALLBACK_URL
+      // expiration: 1426325213000
+    },
+    {}
+  );
+}
+
+async function stopChannel(id, resourceId) {
+  return cal.Channels.stop({
+    id,
+    resourceId
+  });
+}
+
 function isUpdatedEvent(e1, e2) {
   return (
     e1.startTime.toString() !== e2.startTime.toString() ||
@@ -163,5 +207,7 @@ module.exports = {
   updateEvent,
   deleteEvent,
   refreshList,
+  watch,
+  stopChannel,
   isUpdatedEvent
 };

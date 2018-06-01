@@ -4,24 +4,25 @@
   "description": "GaroonからGoogle Calendarへ予定を更新します",
   "scripts": {
     "start": "node src/index.js",
+    "start:batch": "node src/batch.js",
     "fmt": "prettier --write **/*.{js,json,md}",
     "precommit": "pretty-quick --staged"
   },
   "author": "hiroppy <git@hiroppy.me> (https://hiroppy.me)",
   "license": "MIT",
   "dependencies": {
-    "@about_hiroppy/node-google-calendar": "^1.1.1",
+    "@about_hiroppy/node-google-calendar": "^1.1.2",
     "body-parser": "^1.18.3",
+    "cron": "^1.3.0",
     "express": "^4.16.3",
     "garoon-soap": "^0.1.9",
     "lodash.xor": "^4.5.0",
     "mysql2": "^1.5.3",
-    "node-cron": "^1.2.1",
     "sequelize": "^4.37.10"
   },
   "devDependencies": {
     "husky": "^0.14.3",
-    "prettier": "^1.12.1",
+    "prettier": "^1.13.4",
     "pretty-quick": "^1.6.0"
   }
 }

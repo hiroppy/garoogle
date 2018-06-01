@@ -22,7 +22,7 @@ if (
 }
 
 const { EventEmitter } = require('events');
-const cron = require('node-cron');
+const { CronJob } = require('cron');
 const xor = require('lodash.xor');
 const { getEvents, formatSchema } = require('./garoon');
 const { init: initServer, updateLastUpdated } = require('./server');
@@ -46,15 +46,19 @@ const ee = new EventEmitter();
 
 initServer(ee);
 
-if (process.env.CALLBACK_URL) {
-  refreshList(ee); // watch google calendar
-}
+// watch google calendar
+if (process.env.CALLBACK_URL) refreshList(ee);
+
+new CronJob(
+  process.env.CRON,
+  async () => {
+    await startTasks();
+  },
+  null,
+  true
+);
 
 startTasks();
-
-cron.schedule(process.env.CRON, async () => {
-  await startTasks();
-});
 
 async function startTasks() {
   console.log(`${new Date()} fetching...`);

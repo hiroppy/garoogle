@@ -20,7 +20,9 @@ sequelize.sync();
 
 const Meta = sequelize.define('meta', {
   latestEventsList: Sequelize.TEXT,
-  nextSyncToken: Sequelize.STRING
+  nextSyncToken: Sequelize.STRING,
+  resourceId: Sequelize.STRING,
+  currentChannelId: Sequelize.STRING
 });
 
 const Events = sequelize.define(
