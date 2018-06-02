@@ -28,10 +28,11 @@ const cal = new CalendarAPI({
 });
 const calendarID = process.env.CALENDAR_ID;
 
-function createParams({ startTime, endTime, summary, description }) {
+function createParams({ private: isPrivate, startTime, endTime, summary, description }) {
   return {
     start: { dateTime: startTime },
     end: { dateTime: endTime },
+    visibility: isPrivate ? 'private' : undefined,
     summary,
     description
   };
