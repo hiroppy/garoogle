@@ -4,12 +4,12 @@ const { resolve } = require('path');
 const { addEvents, modifyEvents, deleteEvents } = require('./garoon');
 const CalendarAPI = require('@about_hiroppy/node-google-calendar');
 const {
+  getMeta,
+  setMeta,
   setEvent,
   getEvent,
   updateEvent: updateDBEvent,
-  deleteEvent: deleteDBEvent,
-  getMeta,
-  setMeta
+  deleteEvent: deleteDBEvent
 } = require('./store');
 const { private_key: key } = require(resolve(process.env.GOOGLE_API_KEY_FILE));
 
@@ -18,6 +18,7 @@ if (!key) {
   process.exit(1);
 }
 
+const calendarId = process.env.CALENDAR_ID;
 const cal = new CalendarAPI({
   key,
   timezone: 'UTC+09:00',
@@ -26,7 +27,6 @@ const cal = new CalendarAPI({
   },
   serviceAcctId: process.env.SERVICE_ACCT_ID
 });
-const calendarID = process.env.CALENDAR_ID;
 
 function createParams({ private: isPrivate, startTime, endTime, summary, description }) {
   return {
@@ -38,6 +38,10 @@ function createParams({ private: isPrivate, startTime, endTime, summary, descrip
   };
 }
 
+/**
+ * 予定のメンバーが複数人のときに、操作を許可するかどうか
+ * SATEFYがtrueのときは、更新と削除はGoogle CalendarからGaroonへの変更は行わない
+ */
 function isAllow(data) {
   if (!Reflect.has(data, 'members')) return false;
   if (!process.env.SAFETY) return true;
@@ -47,7 +51,10 @@ function isAllow(data) {
   return users && users.length === 1 && users[0].id === process.env.GAROON_MY_ID;
 }
 
-// catch as a webhook from server.js
+/**
+ * Google Calendarからwebhookを受けたときの処理(server.jsからemitされる)
+ * `sync`と`exist`は同じ処理を行う
+ */
 async function refreshList(ee) {
   ee.on('onFetchList', async (headers) => {
     const meta = await getMeta();
@@ -58,13 +65,12 @@ async function refreshList(ee) {
 
     if (headers.channelId !== currentChannelId) return;
 
-    // fetch with syncToken
     const { items, nextSyncToken } = await getList({ syncToken });
 
+    // syncTokenが空の場合は処理を行わず、最後DBへの挿入のみとする
     if (syncToken !== null) {
       for (let i = 0; i < items.length; i++) {
         const { id: googleId, status, start, end, summary, description, visibility } = items[i];
-
         const data = await getEvent({ googleId });
 
         // 削除
@@ -77,10 +83,10 @@ async function refreshList(ee) {
               console.error(e);
             }
           }
-
           continue;
         }
 
+        // DBスキーマ
         const schema = {
           summary,
           description,
@@ -89,7 +95,7 @@ async function refreshList(ee) {
           endTime: new Date(end.dateTime).getTime().toString()
         };
 
-        // for garoon
+        // Garoonへの投稿スキーマのベース
         const postedSchema = {
           detail: schema.summary,
           description: schema.description,
@@ -105,29 +111,33 @@ async function refreshList(ee) {
           }
         };
 
-        // 存在しなければ、新規予定なので、DBへ追加しGaroonへ投稿
+        // DBに存在しなければ、新規予定なので、DBへ追加しGaroonへ投稿
         if (data == null) {
-          const [{ id: garoonId, members }] = await addEvents([
-            {
-              ...postedSchema,
-              members: {
-                users: [
-                  {
-                    id: process.env.GAROON_MY_ID
-                  }
-                ],
-                organizations: [],
-                facilities: []
+          try {
+            const [{ id: garoonId, members }] = await addEvents([
+              {
+                ...postedSchema,
+                members: {
+                  users: [
+                    {
+                      id: process.env.GAROON_MY_ID
+                    }
+                  ],
+                  organizations: [],
+                  facilities: []
+                }
               }
-            }
-          ]);
+            ]);
 
-          await setEvent({
-            ...schema,
-            garoonId,
-            googleId,
-            members: JSON.stringify(members)
-          });
+            await setEvent({
+              ...schema,
+              garoonId,
+              googleId,
+              members: JSON.stringify(members)
+            });
+          } catch (e) {
+            console.error(e);
+          }
         }
 
         // 存在すれば、以前から更新があるかの確認をし、上書きする
@@ -153,28 +163,28 @@ async function refreshList(ee) {
 }
 
 async function getList(obj = {}) {
-  return cal.Events.list(calendarID, obj);
+  return cal.Events.list(calendarId, obj);
 }
 
 async function postEvent(obj) {
   const params = createParams(obj);
 
-  return cal.Events.insert(calendarID, params);
+  return cal.Events.insert(calendarId, params);
 }
 
-async function updateEvent(eventID, obj) {
+async function updateEvent(eventId, obj) {
   const params = createParams(obj);
 
-  return cal.Events.update(calendarID, eventID, params);
+  return cal.Events.update(calendarId, eventId, params);
 }
 
-async function deleteEvent(eventID) {
-  return cal.Events.delete(calendarID, eventID, {});
+async function deleteEvent(eventId) {
+  return cal.Events.delete(calendarId, eventId, {});
 }
 
 async function watch(id) {
   return cal.Events.watch(
-    calendarID,
+    calendarId,
     {
       id,
       type: 'web_hook',

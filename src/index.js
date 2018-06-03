@@ -1,6 +1,6 @@
 'use strict';
 
-// for garoon
+// for Garoon
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
 
 // validate
@@ -17,7 +17,7 @@ if (
   !process.env.MYSQL_USER ||
   !process.env.MYSQL_PASSWORD
 ) {
-  console.error('argument error');
+  console.error('引数が足りません。');
   process.exit(1);
 }
 
@@ -46,21 +46,21 @@ const ee = new EventEmitter();
 
 initServer(ee);
 
-// watch google calendar
+// Google Calendarからのwebhookを受け取ったときの処理
 if (process.env.CALLBACK_URL) refreshList(ee);
 
 new CronJob(
   process.env.CRON,
   async () => {
-    await startTasks();
+    await run();
   },
   null,
   true
 );
 
-startTasks();
+run();
 
-async function startTasks() {
+async function run() {
   console.log(`${new Date()} fetching...`);
 
   const res = await getEvents();

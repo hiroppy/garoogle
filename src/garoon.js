@@ -17,6 +17,7 @@ async function getEvents() {
 
   const res = await garoon.schedule.getEvents(start, end);
 
+  if (res == undefined) return null;
   return res.filter((e) => !ignoredPlans.includes(e.plan));
 }
 
@@ -52,8 +53,7 @@ async function deleteEvents(arr) {
 }
 
 function formatSchema(event) {
-  const { when, plan, publicType } = event;
-
+  const { when, plan, publicType, description } = event;
   let startTime, endTime;
 
   // TODO: wip
@@ -64,11 +64,11 @@ function formatSchema(event) {
 
   // TODO: なんで配列なのか調べてないので、とりあえず0番目だけ
   if (when.dates.length !== 0) {
-    // 一日以上予定
+    // 一日以上の予定
     startTime = when.dates[0].start;
     endTime = when.dates[0].end;
   } else if (when.datetimes.length !== 0) {
-    // 時間指定
+    // 時間指定された予定
     startTime = when.datetimes[0].start;
     endTime = when.datetimes[0].end;
   }
@@ -79,9 +79,9 @@ function formatSchema(event) {
     startTime,
     endTime,
     summary,
+    description,
     members: JSON.stringify(event.members),
-    private: publicType === 'private',
-    description: event.description
+    private: publicType === 'private'
   };
 }
 
