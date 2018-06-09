@@ -11,7 +11,7 @@ https://console.developers.google.com/cloud-resource-manager
 1.  プロジェクトを作成
 2.  認証情報のページへ行く https://console.developers.google.com/apis/credentials?project=xxxx
 3.  認証情報を作成 -> サービスアカウントキー
-4.  役割なしでサービスアカウントを選択し、JSON でダウンロード
+4.  `役割なし` でサービスアカウントを選択し、JSON でダウンロード
 5.  `GOOGLE_API_KEY_FILE`のパスをこのファイルのパスへ変更
 6.  ライブラリのページへ行く https://console.developers.google.com/apis/library?project=xxxx
 7.  Google Calendar API を検索し、有効にする
@@ -24,7 +24,7 @@ https://calendar.google.com/calendar
 2.  作ったら、左のサイドメニューのマイカレンダーからそのカレンダーの設定(設定と共有)を開く
 3.  カレンダーの統合からカレンダー ID を取得
 4.  `CALENDAR_ID`の名前を 3 で取得した名前にする(e.g. `xxx@group.calendar.google.com`)
-5.  カレンダーの設定の特定のユーザーとの共有からサービスアカウントのメールアドレスを追加し、予定の変更権限を付与する
+5.  カレンダーの設定の `特定のユーザーとの共有` からサービスアカウントのメールアドレスを追加し、予定の変更権限を付与する
 
 # 補足
 
