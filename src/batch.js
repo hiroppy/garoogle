@@ -5,6 +5,8 @@ const { CronJob } = require('cron');
 const { watch, stopChannel } = require('./google-calendar');
 const { getMeta, setMeta } = require('./store');
 
+if (process.env.CALLBACK_URL === undefined) process.exit();
+
 new CronJob(
   '0 0 0 * * *',
   async () => {
