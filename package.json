@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node src/index.js",
     "start:batch": "node src/batch.js",
+    "migrate": "sequelize db:migrate",
     "fmt": "prettier --write **/*.{js,json,md}",
     "precommit": "pretty-quick --staged"
   },
@@ -18,7 +19,8 @@
     "garoon-soap": "^0.1.9",
     "lodash.xor": "^4.5.0",
     "mysql2": "^1.5.3",
-    "sequelize": "^4.37.10"
+    "sequelize": "^4.37.10",
+    "sequelize-cli": "^4.0.0"
   },
   "devDependencies": {
     "husky": "^0.14.3",

@@ -35,7 +35,8 @@ const Events = sequelize.define(
     summary: Sequelize.STRING,
     description: Sequelize.TEXT,
     private: Sequelize.BOOLEAN,
-    members: Sequelize.TEXT
+    members: Sequelize.TEXT,
+    place: Sequelize.STRING
   },
   {
     charset: 'utf8'

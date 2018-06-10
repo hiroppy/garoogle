@@ -9,6 +9,7 @@ $ git clone git@github.com:hiroppy/garoogle.git
 $ cd garoogle
 $ npm install --production
 $ cp .env.sample .env # and edit
+$ docker-compose run app migrate
 $ docker-compose up -d
 ```
 
