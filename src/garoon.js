@@ -52,9 +52,16 @@ async function deleteEvents(arr) {
   return garoon.schedule.removeEvents(arr);
 }
 
+async function getFacilities(ids) {
+  const places = await garoon.schedule.getFacilitiesById(ids);
+
+  return places[0].name;
+  // return places.map((e) => e.name);
+}
+
 function formatSchema(event) {
-  const { when, plan, publicType, description } = event;
-  let startTime, endTime;
+  const { when, plan, publicType, description, members } = event;
+  let startTime, endTime, place;
 
   // TODO: wip
   if (event.eventType === 'repeat') {
@@ -73,13 +80,22 @@ function formatSchema(event) {
     endTime = when.datetimes[0].end;
   }
 
+  // place
+  // TODO: とりあえず一番プライオリティが高い0番目のみ
+  if (Array.isArray(members.facilities)) {
+    const placeInfo = members.facilities[0];
+
+    if (placeInfo) place = placeInfo.id;
+  }
+
   const summary = `${event.plan ? `${event.plan}: ${event.detail}` : event.detail}`.trim();
 
   return {
-    startTime,
-    endTime,
     summary,
+    place,
     description,
+    startTime: new Date(startTime).getTime(),
+    endTime: new Date(endTime).getTime(),
     members: JSON.stringify(event.members),
     private: publicType === 'private'
   };
@@ -90,5 +106,6 @@ module.exports = {
   addEvents,
   modifyEvents,
   deleteEvents,
+  getFacilities,
   formatSchema
 };

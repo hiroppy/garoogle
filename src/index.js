@@ -24,7 +24,7 @@ if (
 const { EventEmitter } = require('events');
 const { CronJob } = require('cron');
 const xor = require('lodash.xor');
-const { getEvents, formatSchema } = require('./garoon');
+const { getEvents, getFacilities, formatSchema } = require('./garoon');
 const { init: initServer, updateLastUpdated } = require('./server');
 const {
   postEvent,
@@ -79,12 +79,16 @@ async function run() {
 
     if (item === null) {
       // insert
-      const { id: googleId } = await postEvent(schema);
+      const place = schema.place ? await getFacilities([schema.place]) : undefined;
+
+      // DBには場所のIDしかいれたくないため、schema.placeの上書きはしない。
+      const { id: googleId } = await postEvent({
+        ...schema,
+        place
+      });
 
       await setEvent({
         ...schema,
-        startTime: new Date(schema.startTime).getTime(),
-        endTime: new Date(schema.endTime).getTime(),
         googleId,
         garoonId
       });
@@ -92,16 +96,14 @@ async function run() {
       // update
       if (isUpdatedEvent(item, schema)) {
         const { googleId, id } = item;
+        const place = schema.place ? await getFacilities([schema.place]) : undefined;
 
-        await updateEvent(googleId, schema);
-        await updateDBEvent(
-          {
-            ...schema,
-            startTime: new Date(schema.startTime).getTime(),
-            endTime: new Date(schema.endTime).getTime()
-          },
-          id
-        );
+        // DBには場所のIDしかいれたくないため、schema.placeの上書きはしない。
+        await updateEvent(googleId, {
+          ...schema,
+          place
+        });
+        await updateDBEvent(schema, id);
       }
     }
   }

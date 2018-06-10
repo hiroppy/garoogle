@@ -28,12 +28,20 @@ const cal = new CalendarAPI({
   serviceAcctId: process.env.SERVICE_ACCT_ID
 });
 
-function createParams({ private: isPrivate, startTime, endTime, summary, description }) {
+function createParams({
+  private: isPrivate,
+  startTime,
+  endTime,
+  summary,
+  description,
+  place: location
+}) {
   return {
-    start: { dateTime: startTime },
-    end: { dateTime: endTime },
+    start: { dateTime: new Date(startTime) },
+    end: { dateTime: new Date(endTime) },
     visibility: isPrivate ? 'private' : undefined,
     summary,
+    location,
     description
   };
 }
@@ -141,6 +149,7 @@ async function refreshList(ee) {
         }
 
         // 存在すれば、以前から更新があるかの確認をし、上書きする
+        // locationは使わない(garoon -> google calendarのみの適用)
         if (data && isAllow(data) && isUpdatedEvent(schema, data)) {
           try {
             await modifyEvents([
@@ -175,6 +184,7 @@ async function postEvent(obj) {
 async function updateEvent(eventId, obj) {
   const params = createParams(obj);
 
+  console.log(params);
   return cal.Events.update(calendarId, eventId, params);
 }
 
@@ -208,6 +218,7 @@ function isUpdatedEvent(e1, e2) {
     e1.endTime.toString() !== e2.endTime.toString() ||
     e1.private !== e2.private ||
     e1.summary != e2.summary ||
+    e1.place != e2.place || // google calendarからの変更は受け入れたくない
     e1.description != e2.description // null or undefined
   );
 }
