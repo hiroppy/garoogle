@@ -12,7 +12,8 @@ const sequelize = new Sequelize(
     operatorsAliases: true,
     dialectOptions: {
       charset: 'utf8'
-    }
+    },
+    logging: false
   }
 );
 
