@@ -55,6 +55,8 @@ async function deleteEvents(arr) {
 async function getFacilities(ids) {
   const places = await garoon.schedule.getFacilitiesById(ids);
 
+  if (places.length) return '';
+
   return places[0].name;
   // return places.map((e) => e.name);
 }
