@@ -184,7 +184,6 @@ async function postEvent(obj) {
 async function updateEvent(eventId, obj) {
   const params = createParams(obj);
 
-  console.log(params);
   return cal.Events.update(calendarId, eventId, params);
 }
 
